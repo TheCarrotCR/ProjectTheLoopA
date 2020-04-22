@@ -7,10 +7,16 @@ public class Button : MonoBehaviour
     public bool pressed;
     public Door door1;
 
-     private void OnTriggerEnter2D(Collider2D other) 
-     {
-        enabled = other.gameObject.tag == "Player";
-     }
+    private void OnTriggerStay2D(Collider2D other) 
+    {
+      pressed = other.gameObject.tag == "Player";
+    }
+
+    private void OnTriggerExit2D(Collider2D other) 
+    {
+      pressed = other.gameObject.tag != "Player";
+    }
+
     void Start()
     {
         
