@@ -25,7 +25,6 @@ public class Player : MonoBehaviour
 
     void Start()
     {
-        //rigidbody = this.gameObject.GetComponent<Rigidbody2D>();
         controls = GameObject.FindWithTag("Controls").GetComponent<Layout>();
         allowedMoveLeft = true;
         allowedMoveRight = true;
@@ -123,6 +122,10 @@ public class Player : MonoBehaviour
         {
             allowedMoveLeft = otherBounds.center.x > bounds.center.x;
             allowedMoveRight = otherBounds.center.x < bounds.center.x;
+        }
+        if (other.gameObject.GetComponent<Platform>() != null) 
+        {
+            state = speedVector.x == 0 ? State.Idle : State.Run;
         }
     }
 
