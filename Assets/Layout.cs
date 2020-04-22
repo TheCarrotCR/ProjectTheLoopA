@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Layout : MonoBehaviour
 {
+    public KeyCode onClimb;
     public KeyCode moveUp1;
     public KeyCode moveUp2;
     public KeyCode moveDown1;
@@ -13,6 +14,7 @@ public class Layout : MonoBehaviour
     public KeyCode moveRight1;
     public KeyCode moveRight2;
 
+    public bool PressedOnClimb => Input.GetKey(onClimb); 
     public bool PressedMoveRight => Input.GetKey(moveRight1) || Input.GetKey(moveRight2); 
     public bool PressedMoveLeft => Input.GetKey(moveLeft1) || Input.GetKey(moveLeft2); 
     public bool PressedMoveUp => Input.GetKey(moveUp1) || Input.GetKey(moveUp2); 

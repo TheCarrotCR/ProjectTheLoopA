@@ -4,19 +4,12 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    //private Rigidbody2D rigidbody;
     private Layout controls;
     private bool allowedMoveLeft;
     private bool allowedMoveRight;
-    private bool allowedClimbingUp;
-    private bool allowedClimbingDown;
+    private bool allowedClimbing;
 
-    public enum State {
-        Idle,
-        IdleClimb,
-        Climb,
-        Run
-    }
+    public enum State { Idle, Climb, Run }
 
     public State state;
     public Vector2 speedVector;
@@ -28,8 +21,7 @@ public class Player : MonoBehaviour
         controls = GameObject.FindWithTag("Controls").GetComponent<Layout>();
         allowedMoveLeft = true;
         allowedMoveRight = true;
-        allowedClimbingUp = false;
-        allowedClimbingDown = false;
+        allowedClimbing = false;
     }
 
     void FixedUpdate()
@@ -39,20 +31,11 @@ public class Player : MonoBehaviour
 
     void PerformMovement() 
     {
-        var currentRigidbody = GetComponent<Rigidbody2D>();
-        PrepareClimb();
-        if (state == State.Climb || state == State.IdleClimb)
-        {
-            var currentVelocity = currentRigidbody.velocity;
-            currentVelocity.y = 0;
-            currentRigidbody.velocity = currentVelocity;
-            currentRigidbody.gravityScale = 0;
-            PerformClimb();
-        }
-        else
+        PerformClimb();
+        GetComponent<Rigidbody2D>().gravityScale = state == State.Climb ? 0 : 1;
+        if (state != State.Climb)
         {
             speedVector.y = 0;
-            currentRigidbody.gravityScale = 1;
             PrepareMovement();
             if (speedVector.x != 0) 
             {
@@ -85,33 +68,23 @@ public class Player : MonoBehaviour
         speedVector.x *= direction;
     }
 
-    void PrepareClimb()
-    {
-        if (allowedClimbingDown && controls.PressedMoveDown 
-            || allowedClimbingUp && controls.PressedMoveUp)
-        {
-            state = State.Climb;
-            return;
-        }
-        if (state == State.Climb)
-            state = State.IdleClimb;
-    }
-
     void PerformClimb()
     {
-        speedVector.x = 0;
-        var direction = speedVector.y / Mathf.Abs(speedVector.y);
-        if (float.IsNaN(direction))
-            direction = controls.PressedMoveDown ? -1 : 1;
-        speedVector.y = Mathf.Abs(speedVector.y);
-        if (controls.PressedMoveUp && direction > 0 
-            || controls.PressedMoveDown && direction < 0)
-            speedVector.y += speedStep.y;
-        else if (speedVector.y > 0)
-            speedVector.y -= speedStep.y * 2.5f;
-        if (speedVector.y < 0 || speedVector.y > speedMax.y)
-            speedVector.y = speedVector.y < 0 ? 0 : speedMax.y;
-        speedVector.y *= direction;
+        if (allowedClimbing) 
+        {
+            if (controls.PressedMoveUp || controls.PressedMoveDown)
+                speedVector.y = controls.PressedMoveUp ? speedMax.y : -speedMax.y;
+            else 
+            {
+                speedVector.y = 0;
+                if (state == State.Climb)
+                    state = State.Idle;
+                return;
+            }
+            state = State.Climb;
+        }
+        else if (state == State.Climb)
+            state = State.Idle;
     }
 
     private void OnCollisionEnter2D(Collision2D other) 
@@ -122,10 +95,6 @@ public class Player : MonoBehaviour
         {
             allowedMoveLeft = otherBounds.center.x > bounds.center.x;
             allowedMoveRight = otherBounds.center.x < bounds.center.x;
-        }
-        if (other.gameObject.GetComponent<Platform>() != null) 
-        {
-            state = speedVector.x == 0 ? State.Idle : State.Run;
         }
     }
 
@@ -140,20 +109,13 @@ public class Player : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D other) 
     {
-        if (state != State.Climb && other.gameObject.GetComponent<ClimbyThing>() != null)        
-        {
-            allowedClimbingUp = true;
-            allowedClimbingDown = true;
-        }  
+        if (state != State.Climb && other.gameObject.GetComponent<ClimbyThing>() != null)
+            allowedClimbing = true;
     }
 
     private void OnTriggerExit2D(Collider2D other) 
     {
-        if (other.gameObject.GetComponent<ClimbyThing>() != null)        
-        {
-            allowedClimbingUp = false;
-            allowedClimbingDown = false;
-            state = speedVector.x == 0 ? State.Idle : State.Run;
-        }  
+        if (other.gameObject.GetComponent<ClimbyThing>() != null)
+            allowedClimbing = false;
     }
 }
