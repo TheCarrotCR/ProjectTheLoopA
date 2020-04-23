@@ -142,6 +142,8 @@ public class Player : MonoBehaviour
             allowedMoveLeft = otherBounds.center.x > bounds.center.x;
             allowedMoveRight = otherBounds.center.x < bounds.center.x;
         }
+        if (other.gameObject.GetComponent<Player>() != null)
+            Physics2D.IgnoreCollision(other.collider, other.otherCollider);
     }
 
     private void OnCollisionExit2D(Collision2D other) 
