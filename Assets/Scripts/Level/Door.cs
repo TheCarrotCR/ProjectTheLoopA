@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Platform : MonoBehaviour
+public class Door : MonoBehaviour
 {
-    // Start is called before the first frame update
+  public bool isOpened;
+
     void Start()
     {
         
@@ -13,6 +14,6 @@ public class Platform : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        GetComponent<BoxCollider2D>().enabled = !isOpened;
     }
 }
