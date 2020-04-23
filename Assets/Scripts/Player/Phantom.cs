@@ -34,10 +34,11 @@ public class Phantom : MonoBehaviour
     public int memorySpeed;
     public int memoryPosition;
 
-    void Start()
+    public void Start()
     {
         memory = new List<MemoryCell>();
         memoryPosition = 0;
+        gameObject.SetActive(!GetComponent<Player>().isPhantom);
     }
 
     public void Remember(Player.State state, Vector2 transformScale, Vector2 speedVector, bool allowedMoveLeft, bool allowedMoveRight, bool allowedClimbing)
