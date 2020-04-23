@@ -9,12 +9,12 @@ public class Button : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D other) 
     {
-      pressed = other.gameObject.tag == "Player";
+      pressed = other.gameObject.tag == "Player" || other.gameObject.tag == "Phantom"; 
     }
 
     private void OnTriggerExit2D(Collider2D other) 
     {
-      pressed = other.gameObject.tag != "Player";
+      pressed = !(other.gameObject.tag == "Player" || other.gameObject.tag == "Phantom");
     }
 
     void Start()
