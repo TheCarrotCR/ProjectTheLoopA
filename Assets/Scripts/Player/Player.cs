@@ -5,12 +5,16 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     private Layout controls;
+    private Vector2 prevPosition;
     private bool allowedMoveLeft;
     private bool allowedMoveRight;
     private bool allowedClimbing;
 
     public enum State { Idle, Climb, Run }
 
+    public Phantom phantom;
+    public bool isPhantom;
+    public GameObject playerPhantom;
     public State state;
     public Vector2 speedVector;
     public Vector2 speedMax;
@@ -22,12 +26,54 @@ public class Player : MonoBehaviour
         allowedMoveLeft = true;
         allowedMoveRight = true;
         allowedClimbing = false;
+        prevPosition = GetComponent<Rigidbody2D>().position;
+        gameObject.SetActive(!isPhantom);
     }
 
     void FixedUpdate()
     {
-        PerformMovement();
+        if (isPhantom)
+        {
+            phantom.Play(this);
+            return;
+        }
+        if (!controls.PressedTimeback) 
+        {
+            PerformMovement();
+            phantom.Remember(state, transform.localScale, GetComponent<Rigidbody2D>().position - prevPosition, allowedMoveLeft, allowedMoveRight, allowedClimbing);
+        }
+        else
+        {
+            var memento = phantom.Pop();
+            if (!memento.isNull)
+            {
+                SetMovementPermissions(memento.allowedMoveLeft, memento.allowedMoveRight, memento.allowedClimbing);
+                speedVector = memento.speedVector;
+                transform.localScale = memento.transformScale;
+                state = memento.state;
+                GetComponent<Rigidbody2D>().gravityScale = speedVector.y != 0 ? 0 : 1;
+                transform.Translate(new Vector2(-speedVector.x, -speedVector.y));
+            }
+        }
+        prevPosition = GetComponent<Rigidbody2D>().position;
+        if (controls.PressedPlayPhantom && playerPhantom != null)
+        {
+            if (playerPhantom.activeSelf) return;
+            playerPhantom.GetComponent<Player>().phantom.memory = new List<Phantom.MemoryCell>(this.phantom.memory);
+            playerPhantom.SetActive(true);
+        }
     }
+
+    public void SetMovementPermissions(bool allowedMoveLeft, bool allowedMoveRight, bool allowedClimbing)
+    {
+        this.allowedMoveLeft = allowedMoveLeft;
+        this.allowedMoveRight = allowedMoveRight;
+        this.allowedClimbing = allowedClimbing;
+    }
+
+    public bool CanClimb() => allowedClimbing;
+    public bool CanMoveLeft() => allowedMoveLeft;
+    public bool CanMoveRight() => allowedMoveRight;
 
     void PerformMovement() 
     {
@@ -96,6 +142,8 @@ public class Player : MonoBehaviour
             allowedMoveLeft = otherBounds.center.x > bounds.center.x;
             allowedMoveRight = otherBounds.center.x < bounds.center.x;
         }
+        if (other.gameObject.GetComponent<Player>() != null)
+            Physics2D.IgnoreCollision(other.collider, other.otherCollider);
     }
 
     private void OnCollisionExit2D(Collision2D other) 
