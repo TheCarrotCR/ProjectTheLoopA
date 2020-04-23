@@ -34,6 +34,7 @@ public class Player : MonoBehaviour
         if (isPhantom)
         {
             phantom.Play(this);
+            TriggerAnimations();
             return;
         }
         if (!controls.PressedTimeback) 
@@ -61,6 +62,29 @@ public class Player : MonoBehaviour
             if (playerPhantom.activeSelf) return;
             playerPhantom.GetComponent<Phantom>().memory = new List<Phantom.MemoryCell>(this.phantom.memory);
             playerPhantom.SetActive(true);
+        }
+        TriggerAnimations();
+    }
+
+    void TriggerAnimations()
+    {
+        var m_Animator = GetComponent<Animator>();
+        switch (state) {
+            case State.Climb:
+                m_Animator.ResetTrigger("Stop");
+                m_Animator.ResetTrigger("Run");
+                m_Animator.SetTrigger("Climb");
+                break;
+            case State.Run:
+                m_Animator.ResetTrigger("Stop");
+                m_Animator.ResetTrigger("Climb");
+                m_Animator.SetTrigger("Run");
+                break;
+            default:
+                m_Animator.ResetTrigger("Run");
+                m_Animator.ResetTrigger("Idle");
+                m_Animator.SetTrigger("Stop");
+                break;
         }
     }
 
