@@ -14,10 +14,6 @@ public class Door : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-<<<<<<< HEAD:Assets/Door.cs
-      GetComponent<BoxCollider2D>(). enabled = !isOpened;
-=======
         GetComponent<BoxCollider2D>().enabled = !isOpened;
->>>>>>> c0b70b1b02625e70f314e860ba2d920431634671:Assets/Scripts/Level/Door.cs
     }
 }
