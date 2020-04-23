@@ -27,7 +27,6 @@ public class Player : MonoBehaviour
         allowedMoveRight = true;
         allowedClimbing = false;
         prevPosition = GetComponent<Rigidbody2D>().position;
-        gameObject.SetActive(!isPhantom);
     }
 
     void FixedUpdate()
@@ -41,6 +40,7 @@ public class Player : MonoBehaviour
         {
             PerformMovement();
             phantom.Remember(state, transform.localScale, GetComponent<Rigidbody2D>().position - prevPosition, allowedMoveLeft, allowedMoveRight, allowedClimbing);
+            //playerPhantom.GetComponent<Phantom>().Remember(state, transform.localScale, GetComponent<Rigidbody2D>().position - prevPosition, allowedMoveLeft, allowedMoveRight, allowedClimbing);
         }
         else
         {
@@ -59,7 +59,7 @@ public class Player : MonoBehaviour
         if (controls.PressedPlayPhantom && playerPhantom != null)
         {
             if (playerPhantom.activeSelf) return;
-            playerPhantom.GetComponent<Player>().phantom.memory = new List<Phantom.MemoryCell>(this.phantom.memory);
+            playerPhantom.GetComponent<Phantom>().memory = new List<Phantom.MemoryCell>(this.phantom.memory);
             playerPhantom.SetActive(true);
         }
     }
