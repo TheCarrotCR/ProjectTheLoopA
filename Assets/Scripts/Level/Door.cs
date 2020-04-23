@@ -18,13 +18,13 @@ public class Door : MonoBehaviour
         var m_Animator = GetComponent<Animator>();
         if (isOpened)
         {
-          m_Animator.ResetTrigger("Close");
+          m_Animator.ResetTrigger("Closing");
           m_Animator.SetTrigger("Open");
         }
         else
         {
           m_Animator.ResetTrigger("Open");
-          m_Animator.SetTrigger("Close");
+          m_Animator.SetTrigger("Closing");
         }
     }
 }
