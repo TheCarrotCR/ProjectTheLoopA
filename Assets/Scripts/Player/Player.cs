@@ -98,8 +98,6 @@ public class Player : MonoBehaviour
 
     void PrepareMovement()
     {
-        if (!(allowedMoveLeft && allowedMoveRight || speedVector.x == 0))
-            speedVector.x = 0;
         var direction = speedVector.x / Mathf.Abs(speedVector.x);
         if (float.IsNaN(direction))
             direction = controls.PressedMoveLeft ? -1 : 1;
@@ -112,6 +110,8 @@ public class Player : MonoBehaviour
         if (speedVector.x < 0 || speedVector.x > speedMax.x)
             speedVector.x = speedVector.x < 0 ? 0 : speedMax.x;
         speedVector.x *= direction;
+        if (!allowedMoveLeft && speedVector.x < 0 || !allowedMoveRight && speedVector.x > 0)
+            speedVector.x = 0;
     }
 
     void PerformClimb()
