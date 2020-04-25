@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    private Rigidbody2D curRigidbody;
     private Animator curAnimator;
+    private float prevAnimSpeed;
     private Layout controls;
     private Vector3 prevPosition;
     private bool allowedMoveLeft;
@@ -24,12 +24,13 @@ public class Player : MonoBehaviour
     public Vector2 speedVector;
     public Vector2 speedMax;
     public Vector2 speedStep;
+    public float gravityAffect;
 
     void Start()
     {
-        curRigidbody = GetComponent<Rigidbody2D>();
         curAnimator = GetComponent<Animator>();
         controls = GameObject.FindWithTag("Controls").GetComponent<Layout>();
+        gravityAffect = 0.098f;
 
         allowedMoveLeft = true;
         allowedMoveRight = true;
@@ -78,20 +79,19 @@ public class Player : MonoBehaviour
 
     void TriggerAnimations()
     {
+        curAnimator.ResetTrigger("Stop");
+        curAnimator.ResetTrigger("Run");
+        curAnimator.ResetTrigger("Climb");
+        curAnimator.speed = 1;
         switch (state) {
             case State.Climb:
-                curAnimator.ResetTrigger("Stop");
-                curAnimator.ResetTrigger("Run");
+                curAnimator.speed = speedVector.y == 0 ? 0 : 1;
                 curAnimator.SetTrigger("Climb");
                 break;
             case State.Run:
-                curAnimator.ResetTrigger("Stop");
-                curAnimator.ResetTrigger("Climb");
                 curAnimator.SetTrigger("Run");
                 break;
-            default:
-                curAnimator.ResetTrigger("Run");
-                curAnimator.ResetTrigger("Climb");
+            case State.Idle:
                 curAnimator.SetTrigger("Stop");
                 break;
         }
@@ -113,7 +113,7 @@ public class Player : MonoBehaviour
         PerformClimb();
         if (state != State.Climb)
         {
-            speedVector.y = inAir ? -speedMax.y : 0;
+            speedVector.y = inAir ? -gravityAffect : 0;
             PrepareMovement();
             if (speedVector.x != 0) 
             {
@@ -151,7 +151,10 @@ public class Player : MonoBehaviour
         if (allowedClimbing) 
         {
             if (controls.PressedMoveUp && allowedClimbingUp || controls.PressedMoveDown && allowedClimbingDown)
+            {
+                speedVector = Vector2.zero;
                 speedVector.y = controls.PressedMoveUp ? speedMax.y : -speedMax.y;
+            }
             else 
             {
                 speedVector.y = 0;
@@ -217,11 +220,8 @@ public class Player : MonoBehaviour
         if (other.gameObject.tag == "Platform")
             if (state != State.Climb) 
                 inAir = true;
-            else
-            {
-                allowedClimbingDown = true;
-                allowedClimbingUp = true;
-            }
+            allowedClimbingDown = true;
+            allowedClimbingUp = true;
     }
 
     private void OnTriggerStay2D(Collider2D other) 
@@ -238,6 +238,7 @@ public class Player : MonoBehaviour
             {
                 inAir = true;
                 state = State.Idle;
+                allowedClimbingUp = false;
             }
             allowedClimbing = false;
         }
