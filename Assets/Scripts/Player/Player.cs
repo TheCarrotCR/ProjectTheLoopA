@@ -155,8 +155,6 @@ public class Player : MonoBehaviour
             else 
             {
                 speedVector.y = 0;
-                if (state == State.Climb)
-                    state = State.Idle;
                 return;
             }
             state = State.Climb;
@@ -205,8 +203,14 @@ public class Player : MonoBehaviour
             allowedMoveLeft = true;
             allowedMoveRight = true;
         }
-        if (other.gameObject.tag == "Platform" && state != State.Climb)
-            inAir = true;    
+        if (other.gameObject.tag == "Platform")
+            if (state != State.Climb) 
+                inAir = true;
+            else
+            {
+                allowedClimbingDown = true;
+                allowedClimbingUp = true;
+            }
     }
 
     private void OnTriggerStay2D(Collider2D other) 
