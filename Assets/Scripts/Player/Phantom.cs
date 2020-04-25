@@ -76,7 +76,7 @@ public class Phantom : MonoBehaviour
                 scale.x = Mathf.Abs(transform.localScale.x) * p.speedVector.x / Mathf.Abs(p.speedVector.x);
                 transform.localScale = scale;
             }
-            GetComponent<Rigidbody2D>().gravityScale = p.state == Player.State.Climb ? 0 : 1;
+            p.speedVector.y = p.inAir ? -p.speedMax.y : p.speedVector.y;
             transform.Translate(new Vector2(p.speedVector.x, p.speedVector.y));
         }
     }

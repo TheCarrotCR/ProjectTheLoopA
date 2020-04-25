@@ -4,27 +4,29 @@ using UnityEngine;
 
 public class Door : MonoBehaviour
 {
+  private BoxCollider2D curCollider;
+  private Animator curAnimator;
   public bool isOpened;
 
     void Start()
     {
-        
+        curCollider = GetComponent<BoxCollider2D>();
+        curAnimator = GetComponent<Animator>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        GetComponent<BoxCollider2D>().enabled = !isOpened;
-        var m_Animator = GetComponent<Animator>();
+        curCollider.enabled = !isOpened;
         if (isOpened)
         {
-          m_Animator.ResetTrigger("Closing");
-          m_Animator.SetTrigger("Open");
+          curAnimator.ResetTrigger("Closing");
+          curAnimator.SetTrigger("Open");
         }
         else
         {
-          m_Animator.ResetTrigger("Open");
-          m_Animator.SetTrigger("Closing");
+          curAnimator.ResetTrigger("Open");
+          curAnimator.SetTrigger("Closing");
         }
     }
 }

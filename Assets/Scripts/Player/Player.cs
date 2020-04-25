@@ -4,11 +4,15 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    private Rigidbody2D curRigidbody;
+    private Animator curAnimator;
     private Layout controls;
-    private Vector2 prevPosition;
+    private Vector3 prevPosition;
     private bool allowedMoveLeft;
     private bool allowedMoveRight;
-    private bool allowedClimbing;
+    public bool allowedClimbing;
+    public bool allowedClimbingUp;
+    public bool allowedClimbingDown;
 
     public enum State { Idle, Climb, Run }
 
@@ -16,17 +20,24 @@ public class Player : MonoBehaviour
     public bool isPhantom;
     public GameObject playerPhantom;
     public State state;
+    public bool inAir;
     public Vector2 speedVector;
     public Vector2 speedMax;
     public Vector2 speedStep;
 
     void Start()
     {
+        curRigidbody = GetComponent<Rigidbody2D>();
+        curAnimator = GetComponent<Animator>();
         controls = GameObject.FindWithTag("Controls").GetComponent<Layout>();
+
         allowedMoveLeft = true;
         allowedMoveRight = true;
         allowedClimbing = false;
-        prevPosition = GetComponent<Rigidbody2D>().position;
+        allowedClimbingUp = true;
+        allowedClimbingDown = true;
+        inAir = true;
+        prevPosition = transform.position;
     }
 
     void FixedUpdate()
@@ -37,13 +48,14 @@ public class Player : MonoBehaviour
             TriggerAnimations();
             return;
         }
-        if (!controls.PressedTimeback) 
+        if (!controls.PressedTimeback)
         {
             PerformMovement();
-            phantom.Remember(state, transform.localScale, GetComponent<Rigidbody2D>().position - prevPosition, allowedMoveLeft, allowedMoveRight, allowedClimbing);
-            //playerPhantom.GetComponent<Phantom>().Remember(state, transform.localScale, GetComponent<Rigidbody2D>().position - prevPosition, allowedMoveLeft, allowedMoveRight, allowedClimbing);
+            var vToRemember = transform.position - prevPosition;
+            phantom.Remember(state, transform.localScale, new Vector2(vToRemember.x, vToRemember.y), allowedMoveLeft, allowedMoveRight, allowedClimbing);
+            prevPosition = transform.position;
         }
-        else
+        else 
         {
             var memento = phantom.Pop();
             if (!memento.isNull)
@@ -52,11 +64,9 @@ public class Player : MonoBehaviour
                 speedVector = memento.speedVector;
                 transform.localScale = memento.transformScale;
                 state = memento.state;
-                GetComponent<Rigidbody2D>().gravityScale = speedVector.y != 0 ? 0 : 1;
                 transform.Translate(new Vector2(-speedVector.x, -speedVector.y));
             }
         }
-        prevPosition = GetComponent<Rigidbody2D>().position;
         if (controls.PressedPlayPhantom && playerPhantom != null)
         {
             if (playerPhantom.activeSelf) return;
@@ -68,22 +78,21 @@ public class Player : MonoBehaviour
 
     void TriggerAnimations()
     {
-        var m_Animator = GetComponent<Animator>();
         switch (state) {
             case State.Climb:
-                m_Animator.ResetTrigger("Stop");
-                m_Animator.ResetTrigger("Run");
-                m_Animator.SetTrigger("Climb");
+                curAnimator.ResetTrigger("Stop");
+                curAnimator.ResetTrigger("Run");
+                curAnimator.SetTrigger("Climb");
                 break;
             case State.Run:
-                m_Animator.ResetTrigger("Stop");
-                m_Animator.ResetTrigger("Climb");
-                m_Animator.SetTrigger("Run");
+                curAnimator.ResetTrigger("Stop");
+                curAnimator.ResetTrigger("Climb");
+                curAnimator.SetTrigger("Run");
                 break;
             default:
-                m_Animator.ResetTrigger("Run");
-                m_Animator.ResetTrigger("Idle");
-                m_Animator.SetTrigger("Stop");
+                curAnimator.ResetTrigger("Run");
+                curAnimator.ResetTrigger("Climb");
+                curAnimator.SetTrigger("Stop");
                 break;
         }
     }
@@ -102,10 +111,9 @@ public class Player : MonoBehaviour
     void PerformMovement() 
     {
         PerformClimb();
-        GetComponent<Rigidbody2D>().gravityScale = state == State.Climb ? 0 : 1;
         if (state != State.Climb)
         {
-            speedVector.y = 0;
+            speedVector.y = inAir ? -speedMax.y : 0;
             PrepareMovement();
             if (speedVector.x != 0) 
             {
@@ -142,7 +150,7 @@ public class Player : MonoBehaviour
     {
         if (allowedClimbing) 
         {
-            if (controls.PressedMoveUp || controls.PressedMoveDown)
+            if (controls.PressedMoveUp && allowedClimbingUp || controls.PressedMoveDown && allowedClimbingDown)
                 speedVector.y = controls.PressedMoveUp ? speedMax.y : -speedMax.y;
             else 
             {
@@ -154,40 +162,69 @@ public class Player : MonoBehaviour
             state = State.Climb;
         }
         else if (state == State.Climb)
+        {
             state = State.Idle;
+        }
     }
 
-    private void OnCollisionEnter2D(Collision2D other) 
+    private void OnCollisionStay2D(Collision2D other) 
     {
         var bounds = other.otherCollider.bounds;
         var otherBounds = other.collider.bounds;
-        if (other.gameObject.GetComponent<Wall>() != null) 
+        if (other.gameObject.tag == "Wall") 
         {
             allowedMoveLeft = otherBounds.center.x > bounds.center.x;
             allowedMoveRight = otherBounds.center.x < bounds.center.x;
         }
-        if (other.gameObject.GetComponent<Player>() != null)
-            Physics2D.IgnoreCollision(other.collider, other.otherCollider);
+        if (other.gameObject.tag == "Platform")
+        {
+            inAir = false;
+            if (!other.gameObject.GetComponent<Platform>().passable)
+            {
+                state = State.Idle;
+                speedVector.y = 0;
+                if (otherBounds.center.y < bounds.center.y)
+                    allowedClimbingDown = false;
+                if (otherBounds.center.y > bounds.center.y)
+                    allowedClimbingUp = false;
+            }
+            else
+            {
+                if (otherBounds.center.y < bounds.center.y)
+                    allowedClimbingDown = true;
+                if (otherBounds.center.y > bounds.center.y)
+                    allowedClimbingUp = true;
+            }
+        }
     }
 
     private void OnCollisionExit2D(Collision2D other) 
     {
-        if (other.gameObject.GetComponent<Wall>() != null) 
+        if (other.gameObject.tag == "Wall") 
         {
             allowedMoveLeft = true;
             allowedMoveRight = true;
-        }       
+        }
+        if (other.gameObject.tag == "Platform" && state != State.Climb)
+            inAir = true;    
     }
 
     private void OnTriggerStay2D(Collider2D other) 
     {
-        if (state != State.Climb && other.gameObject.GetComponent<ClimbyThing>() != null)
+        if (other.gameObject.GetComponent<ClimbyThing>() != null)
             allowedClimbing = true;
     }
 
     private void OnTriggerExit2D(Collider2D other) 
     {
         if (other.gameObject.GetComponent<ClimbyThing>() != null)
+        {
+            if (state == State.Climb)
+            {
+                inAir = true;
+                state = State.Idle;
+            }
             allowedClimbing = false;
+        }
     }
 }
