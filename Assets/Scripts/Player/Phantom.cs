@@ -77,7 +77,7 @@ public class Phantom : MonoBehaviour
                 transform.localScale = scale;
             }
             if (p.state != Player.State.Climb && p.speedVector.y == 0)
-                p.speedVector.y = p.inAir ? -p.speedMax.y : 0;
+                p.speedVector.y = p.inAir ? -p.gravityAffect : 0;
             transform.Translate(new Vector2(p.speedVector.x, p.speedVector.y));
         }
     }
