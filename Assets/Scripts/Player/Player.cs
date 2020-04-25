@@ -10,9 +10,9 @@ public class Player : MonoBehaviour
     private Vector3 prevPosition;
     private bool allowedMoveLeft;
     private bool allowedMoveRight;
-    public bool allowedClimbing;
-    public bool allowedClimbingUp;
-    public bool allowedClimbingDown;
+    private bool allowedClimbing;
+    private bool allowedClimbingUp;
+    private bool allowedClimbingDown;
 
     public enum State { Idle, Climb, Run }
 
@@ -165,7 +165,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void OnCollisionStay2D(Collision2D other) 
+    private void OnCollisionEnter2D(Collision2D other)
     {
         var bounds = other.otherCollider.bounds;
         var otherBounds = other.collider.bounds;
@@ -173,7 +173,18 @@ public class Player : MonoBehaviour
         {
             allowedMoveLeft = otherBounds.center.x > bounds.center.x;
             allowedMoveRight = otherBounds.center.x < bounds.center.x;
+            if (!allowedMoveLeft && !allowedMoveRight && state != State.Climb)
+            {
+                allowedMoveLeft = true;
+                allowedMoveRight = true;
+            }
         }
+    }
+
+    private void OnCollisionStay2D(Collision2D other) 
+    {
+        var bounds = other.otherCollider.bounds;
+        var otherBounds = other.collider.bounds;
         if (other.gameObject.tag == "Platform")
         {
             inAir = false;

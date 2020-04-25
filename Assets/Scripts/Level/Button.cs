@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class Button : MonoBehaviour
 {
-    public bool pressed;
+    public int pressed;
     public Door door1;
 
-    private void OnTriggerStay2D(Collider2D other) 
+    private void OnTriggerEnter2D(Collider2D other) 
     {
-      pressed = other.gameObject.tag == "Player" || other.gameObject.tag == "Phantom";
-      if (pressed)
+      if (other.gameObject.tag == "Player" || other.gameObject.tag == "Phantom")
+        pressed++;
+      if (pressed > 0)
       {
         var m_Animator = GetComponent<Animator>();
         m_Animator.ResetTrigger("Off");
@@ -20,8 +21,9 @@ public class Button : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other) 
     {
-      pressed = !(other.gameObject.tag == "Player" || other.gameObject.tag == "Phantom");
-      if (!pressed)
+      if (other.gameObject.tag == "Player" || other.gameObject.tag == "Phantom")
+        pressed--;
+      if (pressed <= 0)
       {
         var m_Animator = GetComponent<Animator>();
         m_Animator.ResetTrigger("On");
@@ -31,7 +33,7 @@ public class Button : MonoBehaviour
 
     void FixedUpdate()
     {
-      door1.isOpened = pressed;
+      door1.isOpened = pressed > 0;
     }
     
 }
