@@ -69,9 +69,11 @@ public class Phantom : MonoBehaviour
                 p.speedVector.y = 0;
             if (p.speedVector.x < 0 && !p.CanMoveLeft() || p.speedVector.x > 0 && !p.CanMoveRight())
                 p.speedVector.x = 0;
-            p.state = p.speedVector.y != 0 && !p.inAir ? Player.State.Climb : p.speedVector.x == 0 ? Player.State.Idle : Player.State.Run;
+            if (p.speedVector.y != 0 && p.CanClimb() && !p.inAir)
+                p.state = Player.State.Climb;
             if (p.speedVector.x != 0)
             {
+                p.state = Player.State.Run;
                 var scale = transform.localScale;
                 scale.x = Mathf.Abs(transform.localScale.x) * p.speedVector.x / Mathf.Abs(p.speedVector.x);
                 transform.localScale = scale;

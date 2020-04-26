@@ -176,11 +176,6 @@ public class Player : MonoBehaviour
         {
             allowedMoveLeft = otherBounds.center.x > bounds.center.x;
             allowedMoveRight = otherBounds.center.x < bounds.center.x;
-            if (!allowedMoveLeft && !allowedMoveRight && state != State.Climb)
-            {
-                allowedMoveLeft = true;
-                allowedMoveRight = true;
-            }
         }
     }
 
@@ -190,21 +185,22 @@ public class Player : MonoBehaviour
         var otherBounds = other.collider.bounds;
         if (other.gameObject.tag == "Platform")
         {
-            inAir = false;
+            if (otherBounds.min.y < bounds.min.y)
+                inAir = false;
             if (!other.gameObject.GetComponent<Platform>().passable)
             {
                 state = State.Idle;
                 speedVector.y = 0;
-                if (otherBounds.center.y < bounds.center.y)
+                if (otherBounds.min.y < bounds.min.y)
                     allowedClimbingDown = false;
-                if (otherBounds.center.y > bounds.center.y)
+                if (otherBounds.min.y > bounds.min.y)
                     allowedClimbingUp = false;
             }
             else
             {
-                if (otherBounds.center.y < bounds.center.y)
+                if (otherBounds.min.y < bounds.min.y)
                     allowedClimbingDown = true;
-                if (otherBounds.center.y > bounds.center.y)
+                if (otherBounds.min.y > bounds.min.y)
                     allowedClimbingUp = true;
             }
         }
@@ -218,10 +214,12 @@ public class Player : MonoBehaviour
             allowedMoveRight = true;
         }
         if (other.gameObject.tag == "Platform")
+        {
             if (state != State.Climb) 
                 inAir = true;
             allowedClimbingDown = true;
             allowedClimbingUp = true;
+        }
     }
 
     private void OnTriggerStay2D(Collider2D other) 
