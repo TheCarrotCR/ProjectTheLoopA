@@ -176,6 +176,17 @@ public class Player : MonoBehaviour
         {
             allowedMoveLeft = otherBounds.center.x > bounds.center.x;
             allowedMoveRight = otherBounds.center.x < bounds.center.x;
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+            /*if (!allowedMoveLeft && !allowedMoveRight && state != State.Climb)
+            {
+                allowedMoveLeft = true;
+                allowedMoveRight = true;
+            }*/
+>>>>>>> 5f35aca5a65d7f69f1083ed069675f9c3cc44b81
+>>>>>>> 0a1ca4b40feec5a8dbe489c5440e092d38e2c64e
         }
     }
 
